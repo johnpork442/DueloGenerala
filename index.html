@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#eef2f7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Generala">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Generala · Duelo de Dados</title>
+<style>
+:root{--bg:#eef2f7;--card:#fff;--tx:#18202b;--mut:#5b6877;--p1:#d62828;--p2:#1f5fd6;--acc:#1f2a37;--bd:#cfd6df;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,"Segoe UI",sans-serif;min-height:100vh;display:flex;justify-content:center}
+main{width:100%;max-width:1000px;padding:18px 14px 40px}
+h1{margin:0 0 4px;font-size:30px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center}
+.sub{text-align:center;color:var(--mut);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+label.t{display:block;font-weight:700;margin:0 0 8px}
+input[type=text]{width:100%;padding:12px;border-radius:8px;border:2px solid var(--bd);background:var(--bg);color:var(--tx);font-size:17px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:9px 14px;border-radius:999px;border:2px solid var(--bd);background:var(--bg);color:var(--tx);font-size:15px;cursor:pointer}
+.chip.on{border-color:var(--acc);background:var(--acc);color:#fff}
+button.big{width:100%;padding:15px;font-size:17px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--acc);border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
+button.big:hover:not(:disabled){filter:brightness(1.25)}
+button.big:disabled{opacity:.4;cursor:not-allowed}
+ul.rules{margin:0;padding-left:20px;color:var(--mut)}
+.score{display:flex;gap:10px;margin-bottom:10px}
+.pl{flex:1;border:3px solid var(--bd);border-radius:12px;padding:8px 12px;background:var(--card);text-align:center;transition:.2s}
+.pl.act{transform:scale(1.02)}
+.pl .n{font-weight:700}.pl .s{font-size:30px;font-weight:800;line-height:1.1}.pl small{color:var(--mut)}
+.main{display:grid;grid-template-columns:minmax(300px,1fr) minmax(320px,1fr);gap:12px;align-items:start}
+@media(max-width:760px){.main{grid-template-columns:1fr}}
+.turn{font-weight:800;font-size:19px;text-align:center;margin-bottom:4px}
+.hint{text-align:center;color:var(--mut);font-size:14px;min-height:20px;margin-bottom:12px}
+.dice{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.dw{display:flex;flex-direction:column;align-items:center;gap:4px}
+.die{width:70px;height:70px;border-radius:14px;background:#fff;border:3px solid var(--bd);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:9px;cursor:pointer;box-shadow:0 3px 0 #0002}
+.die.hold{border-color:var(--acc);background:#dbe7fb;transform:translateY(-6px)}
+.die.q{align-items:center;justify-items:center;font-size:30px;color:var(--mut);display:flex;justify-content:center}
+.pip{width:13px;height:13px;border-radius:50%;background:var(--acc);place-self:center}
+.dw b{font-size:15px}.dw small{color:var(--mut);height:16px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:center}
+th:first-child,td:first-child{text-align:left}
+th.c0{color:var(--p1)}th.c1{color:var(--p2)}
+td.opt{cursor:pointer;color:var(--mut);font-style:italic;background:#f4f7fb}
+td.opt:hover{background:#dbe7fb;color:var(--tx);font-weight:700}
+td.cur{background:#fafcff}
+tr.sep td{background:#f4f7fb;font-size:13px;color:var(--mut)}
+tr.tot td{font-weight:800;font-size:17px;border-top:2px solid var(--acc)}
+.win{text-align:center;font-size:26px;font-weight:800;margin:4px 0 12px}
+.reto{border:2px dashed #94a3b8;border-radius:10px;padding:14px;text-align:center;margin:12px 0;font-size:18px}
+.ghost{width:100%;margin-top:8px;padding:11px;border-radius:10px;border:2px solid var(--bd);background:var(--card);color:var(--tx);font-size:15px;font-weight:700;cursor:pointer}
+.ghost:hover:not(:disabled){background:#dbe7fb}
+.ghost:disabled{opacity:.4;cursor:not-allowed}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>🎲 Generala</h1>
+<p class="sub">Duelo de dados: tira, guarda, arriesga y anota</p>
+
+<section id="setup">
+ <div class="card"><div class="row">
+  <div><label class="t" for="n1">Jugador 1 (rojo)</label><input id="n1" type="text" maxlength="14" placeholder="Tu nombre"></div>
+  <div><label class="t" for="n2">Jugador 2 (azul)</label><input id="n2" type="text" maxlength="14" placeholder="Su nombre"></div>
+ </div></div>
+ <div class="card"><label class="t">Formato</label><div class="chips" id="cS"></div></div>
+ <div class="card"><label class="t">Cómo se juega</label>
+  <ul class="rules">
+   <li>Cada jugador tiene 13 turnos, uno por cada casilla de su planilla. Se alternan.</li>
+   <li>En tu turno tiras los 5 dados hasta 3 veces. Tras cada tirada puedes <b>guardar</b> los dados que quieras (clic en el dado o teclas 1 a 5) y volver a tirar los demás.</li>
+   <li>Al terminar, eliges <b>una casilla libre</b> para anotar. Si no cumples la combinación, anotas 0 en ella.</li>
+   <li>Puntos: Unos a Seises suman esos dados. Trío y Póker suman todos los dados. Full = 25, Escalera corta (4 seguidos) = 30, Escalera larga (5 seguidos) = 40, <b>Generala</b> (5 iguales) = 50, Suerte suma todos.</li>
+   <li>Si la suma de Unos a Seises llega a 63, ganas un bono de +35. Una segunda Generala con la primera ya anotada en 50 da +100.</li>
+   <li>Si te equivocas al anotar, el botón <b>Deshacer</b> devuelve la última anotación con los mismos dados, para que elijas otra casilla.</li>
+   <li>Teclado: 1 a 5 guardan o sueltan un dado, Espacio o R tira. Quien juega puede decir en voz alta la posición de los dados (1 a 5, de izquierda a derecha) que quiere guardar.</li>
+  </ul>
+ </div>
+ <button class="big" id="go">¡A tirar los dados!</button>
+</section>
+
+<section id="game" class="hide">
+ <div class="score" id="score"></div>
+ <div class="main">
+  <div class="card">
+   <div class="turn" id="turn"></div>
+   <div class="hint" id="hint"></div>
+   <div class="dice" id="dice"></div>
+   <button class="big" id="roll"></button>
+   <button class="ghost" id="undo">↩ Deshacer última anotación</button>
+  </div>
+  <div class="card" style="padding:8px 12px"><table id="tab"></table></div>
+ </div>
+ <div class="card hide" id="res">
+  <div class="win" id="rt"></div>
+  <div class="reto hide" id="reto"></div>
+  <button class="big" id="nx"></button>
+ </div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id),COL=["#d62828","#1f5fd6"];
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const RETOS=["Un masaje de 15 minutos 💆","Desayuno en la cama para el ganador 🥞","El ganador elige el plan del fin de semana 🗓️","Escribir 10 cosas que admiras del ganador 📝","Una serenata, aunque sea desafinada 🎤","Lavar los platos por una semana 🍽️","Sesión de fotos divertida elegida por el ganador 📸","Invitar el helado 🍦"];
+const UP=[["u1","Unos"],["u2","Doses"],["u3","Treses"],["u4","Cuatros"],["u5","Cincos"],["u6","Seises"]];
+const LOW=[["t3","Trío"],["t4","Póker"],["fh","Full (3+2)"],["ss","Escalera corta"],["ls","Escalera larga"],["y","¡Generala!"],["ch","Suerte"]];
+const PIPS=[[],[4],[0,8],[0,4,8],[0,2,6,8],[0,2,4,6,8],[0,2,3,5,6,8]];
+let cfg={series:1},G;
+
+function chip(el,l,on,fn){const b=document.createElement("button");b.className="chip"+(on?" on":"");b.textContent=l;b.onclick=fn;el.appendChild(b)}
+function drawSetup(){const a=$("cS");a.innerHTML="";[[1,"Una partida"],[3,"Mejor de 3"],[5,"Mejor de 5"]].forEach(([v,l])=>chip(a,l,cfg.series===v,()=>{cfg.series=v;drawSetup()}))}
+drawSetup();
+
+function pts(k,d){
+ const c=[0,0,0,0,0,0,0];d.forEach(v=>c[v]++);const sum=d.reduce((a,b)=>a+b,0),mx=Math.max(...c);
+ if(k[0]==="u")return c[+k[1]]*+k[1];
+ if(k==="t3")return mx>=3?sum:0;if(k==="t4")return mx>=4?sum:0;
+ if(k==="fh")return c.includes(3)&&c.includes(2)?25:0;
+ if(k==="ss")return [[1,2,3,4],[2,3,4,5],[3,4,5,6]].some(r=>r.every(v=>c[v]))?30:0;
+ if(k==="ls")return [[1,2,3,4,5],[2,3,4,5,6]].some(r=>r.every(v=>c[v]))?40:0;
+ if(k==="y")return mx===5?50:0;
+ return sum;
+}
+function tot(p){
+ const up=UP.reduce((a,[k])=>a+(p.s[k]||0),0),bonus=up>=63?35:0,low=LOW.reduce((a,[k])=>a+(p.s[k]||0),0),yb=p.yb*100;
+ return{up,bonus,low,yb,total:up+bonus+low+yb};
+}
+const filled=p=>Object.keys(p.s).length;
+
+$("go").onclick=()=>{
+ G={names:[$("n1").value.trim()||"Jugador 1",$("n2").value.trim()||"Jugador 2"],w:[0,0],g:0,need:Math.ceil((cfg.series+.5)/2)};
+ $("setup").classList.add("hide");$("game").classList.remove("hide");newGame();
+};
+function resetTurn(){G.d=[0,0,0,0,0];G.hold=[0,0,0,0,0];G.rolls=0;G.busy=false}
+function newGame(){G.p=[{s:{},yb:0},{s:{},yb:0}];G.turn=G.g%2;G.over=false;G.hist=[];G.pending=false;resetTurn();$("res").classList.add("hide");render()}
+
+function roll(){
+ if(G.busy||G.over||G.pending||G.rolls>=3)return;
+ G.busy=true;let f=0;
+ const iv=setInterval(()=>{
+  G.d=G.d.map((v,i)=>G.hold[i]?v:1+Math.floor(Math.random()*6));render();
+  if(++f>=7){clearInterval(iv);G.rolls++;G.busy=false;render()}
+ },65);
+}
+function toggle(i){if(G.over||G.busy||G.pending||G.rolls===0||G.rolls>=3)return;G.hold[i]^=1;render()}
+function score(k){
+ if(G.over||G.busy||G.pending||G.rolls===0)return;
+ const p=G.p[G.turn];if(k in p.s)return;
+ G.hist.push({p:JSON.parse(JSON.stringify(G.p)),turn:G.turn,d:G.d.slice(),hold:G.hold.slice(),rolls:G.rolls});
+ if(p.s.y===50&&Math.max(...[1,2,3,4,5,6].map(n=>G.d.filter(v=>v===n).length))===5)p.yb++;
+ p.s[k]=pts(k,G.d);
+ if(filled(G.p[0])===13&&filled(G.p[1])===13){G.pending=true;render();return}
+ G.turn^=1;resetTurn();render();
+}
+$("roll").onclick=e=>{if(G.pending)finish();else roll();e.currentTarget.blur()};
+$("undo").onclick=e=>{
+ if(G.over||G.busy||!G.hist.length)return;
+ const h=G.hist.pop();G.p=h.p;G.turn=h.turn;G.d=h.d;G.hold=h.hold;G.rolls=h.rolls;G.pending=false;render();e.currentTarget.blur();
+};
+$("tab").onclick=e=>{const td=e.target.closest("td.opt");if(td)score(td.dataset.k)};
+addEventListener("keydown",e=>{
+ if(!G||$("game").classList.contains("hide")||e.target.tagName==="INPUT")return;
+ if(e.key>="1"&&e.key<="5")toggle(+e.key-1);
+ else if(e.key===" "||e.key==="r"||e.key==="R"){if(e.target.tagName==="BUTTON")e.target.blur();roll()}
+ else return;
+ e.preventDefault();
+});
+
+function render(){
+ const T=G.p.map(tot),act=G.over?-1:G.turn;
+ $("score").innerHTML=[0,1].map(i=>`<div class="pl${act===i?" act":""}" style="border-color:${act===i?COL[i]:"var(--bd)"}"><div class="n" style="color:${COL[i]}">${esc(G.names[i])}</div><div class="s">${T[i].total}</div><small>${G.need>1?"🏅 "+G.w[i]+" de "+G.need+" partidas · ":""}${filled(G.p[i])}/13 casillas</small></div>`).join("");
+ $("turn").innerHTML=G.over?"Fin de la partida":G.pending?"Planilla completa":`Turno de <span style="color:${COL[G.turn]}">${esc(G.names[G.turn])}</span> · Tirada ${G.busy?G.rolls+1:Math.max(1,G.rolls)} de 3`;
+ $("hint").textContent=G.over?"":G.pending?"Todas las casillas están llenas. Si te equivocaste en la última, pulsa Deshacer.":G.rolls===0?"Tira los dados para empezar el turno.":G.rolls<3?"Guarda los dados que quieras (clic o teclas 1 a 5) y vuelve a tirar, o anota ya en una casilla.":"Sin tiradas: elige una casilla de la planilla para anotar.";
+ $("dice").innerHTML=G.d.map((v,i)=>`<div class="dw"><div class="die${G.hold[i]?" hold":""}${v?"":" q"}" onclick="toggle(${i})">${v?Array.from({length:9},(_,j)=>PIPS[v].includes(j)?'<span class="pip" style="grid-area:'+(Math.floor(j/3)+1)+'/'+(j%3+1)+'"></span>':"").join(""):"?"}</div><b>${i+1}</b><small>${G.hold[i]?"🔒 guardado":""}</small></div>`).join("");
+ const rb=$("roll");rb.textContent=G.pending?"🏁 Ver resultado final":G.rolls===0?"🎲 Tirar los dados":G.rolls<3?`🎲 Volver a tirar (${3-G.rolls} restantes)`:"Anota en la planilla";
+ rb.disabled=G.over||G.busy||(G.rolls>=3&&!G.pending);
+ $("undo").disabled=G.over||G.busy||!G.hist.length;
+ const cell=(k,i)=>{const p=G.p[i];if(k in p.s)return`<td class="${i===G.turn?"cur":""}">${p.s[k]}</td>`;
+  if(!G.over&&i===G.turn&&G.rolls>0&&!G.busy)return`<td class="opt" data-k="${k}" title="Anotar aquí">${pts(k,G.d)}</td>`;return"<td></td>"};
+ const row=([k,n])=>`<tr><td>${n}</td>${cell(k,0)}${cell(k,1)}</tr>`;
+ $("tab").innerHTML=`<tr><th>Casilla</th><th class="c0">${esc(G.names[0])}</th><th class="c1">${esc(G.names[1])}</th></tr>`
+  +UP.map(row).join("")
+  +`<tr class="sep"><td>Subtotal (bono +35 si llegas a 63)</td><td>${T[0].up}/63${T[0].bonus?" ✓ +35":""}</td><td>${T[1].up}/63${T[1].bonus?" ✓ +35":""}</td></tr>`
+  +LOW.map(row).join("")
+  +(T[0].yb||T[1].yb?`<tr class="sep"><td>Bono Generala extra</td><td>${T[0].yb||"–"}</td><td>${T[1].yb||"–"}</td></tr>`:"")
+  +`<tr class="tot"><td>Total</td><td>${T[0].total}</td><td>${T[1].total}</td></tr>`;
+}
+
+function finish(){G.pending=false;G.over=true;
+ const T=G.p.map(tot),a=T[0].total,b=T[1].total;G.g++;
+ const w=a===b?-1:(a>b?0:1);if(w>=0)G.w[w]++;
+ const fin=G.w[0]>=G.need||G.w[1]>=G.need;
+ render();$("res").classList.remove("hide");
+ const rt=$("rt"),rv=$("reto"),nx=$("nx");rv.classList.add("hide");
+ if(!fin){
+  rt.innerHTML=w<0?`🤝 ¡Empate ${a} a ${b}!`:`Ganó ${esc(G.names[w])} la partida ${Math.max(a,b)} a ${Math.min(a,b)} 🎉`;
+  nx.textContent=G.need>1||w<0?"Siguiente partida":"Jugar de nuevo";nx.onclick=newGame;
+ }else{
+  const f=G.w[0]>G.w[1]?0:1;
+  rt.innerHTML=G.need>1?`🏆 ¡${esc(G.names[f])} gana la serie ${G.w[f]}–${G.w[1-f]}!`:`🏆 ¡${esc(G.names[f])} gana ${Math.max(a,b)} a ${Math.min(a,b)}!`;
+  rv.classList.remove("hide");rv.innerHTML=`<b>Reto para ${esc(G.names[1-f])}:</b> `+RETOS[Math.floor(Math.random()*RETOS.length)];
+  nx.textContent="Volver al inicio";nx.onclick=()=>{$("game").classList.add("hide");$("setup").classList.remove("hide")};
+ }
+}
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
